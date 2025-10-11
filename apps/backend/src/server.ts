@@ -2,10 +2,14 @@ import express, { urlencoded } from 'express'
 import { config } from 'dotenv';
 import cookirParser from 'cookie-parser'
 import cors from 'cors'
+import http from 'http';
+import { startSocketServer } from './sockets/server';
 
 config()
 
 const app = express();
+const server = http.createServer(app);
+
 app.use(cors({
     origin: process.env.FRONTEDN_URL,
     credentials: true,
@@ -20,4 +24,5 @@ import GameRouter from './routes/Gmae.router';
 
 app.use('/api/auth', AuthRouter)
 app.use('/api/gmae', GameRouter)
-export default app
+startSocketServer(server);
+export default server
