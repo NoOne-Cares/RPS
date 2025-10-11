@@ -16,4 +16,11 @@ app.use(express.json({ limit: "15kb" }))
 app.use(urlencoded({ extended: true, limit: "15kb" }))
 
 
+import UserRouter from './routes/User.router'
+import AuthRouter from './routes/AuthRoute'
+import GameRouter from './routes/Gmae.router';
+
+app.use('/api/users', UserRouter)
+app.use('/api/auth', AuthRouter)
+app.use('/api/gmae', GameRouter)
 export default app
