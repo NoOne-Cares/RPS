@@ -1,4 +1,4 @@
-function findWinner(player1move: number, player2move: number): number {
+const findWinner = (player1move: number, player2move: number): number => {
     if (player1move === player2move) return 0;
 
     const winsAgainst: Record<number, number[]> = {
@@ -17,3 +17,5 @@ function findWinner(player1move: number, player2move: number): number {
         return 0;
     }
 }
+
+export default findWinner

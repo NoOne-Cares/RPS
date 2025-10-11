@@ -1,7 +1,7 @@
 import { AsyncHandler } from "../utils/AysncHandler";
 import { ethers, toNumber } from "ethers";
 import { Game } from "../models/Gmae.model";
-
+import findWinner from "../utils/findWinner";
 const createGame = AsyncHandler(async (req, res) => {
     const { contractId, player1, player2, player1Move, stake } = req.body;
 

@@ -1,19 +1,6 @@
-import mongoose, { Schema, Document, model } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-export interface IGame extends Document {
-    contractId: string;
-    player1: string;
-    player2: string;
-    player1Move: string | number;
-    player2Move?: number;
-    gameStatus: 'in-progress' | 'completed';
-    stake: Number,
-    winner?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
-
-const GameSchema: Schema<IGame> = new Schema(
+const GameSchema = new Schema(
     {
         contractId: {
             type: String,
@@ -32,7 +19,7 @@ const GameSchema: Schema<IGame> = new Schema(
             trim: true,
         },
         player1Move: {
-            type: String || Number,
+            type: Schema.Types.Mixed, // can be String or Number
             required: true,
             trim: true,
         },
@@ -63,20 +50,8 @@ const GameSchema: Schema<IGame> = new Schema(
         timestamps: true,
     }
 );
-const getGamesByPlayer2 = AsyncHandler(async (req, res) => {
-    const { player } = req.body;
 
-    if (!player) {
-        return res.status(400).json({ error: 'Missing player address' });
-    }
+const Game = model('Game', GameSchema);
 
-    if (!ethers.isAddress(player)) {
-        return res.status(400).json({ error: 'Invalid Ethereum address' });
-    }
+export { Game }
 
-    const games = await Game.find({ player2: player }).exec();
-
-    return res.status(200).json(games);
-});
-
-export const Game = model<IGame>('Game', GameSchema);

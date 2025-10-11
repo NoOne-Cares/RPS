@@ -1,15 +1,18 @@
 
 import './App.css'
-// import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Route, Routes, BrowserRouter } from "react-router-dom";
-import { Home, Page404 } from './pages';
+import { Home, Page404, Game } from './pages';
+import Navbar from './components/Navbar';
 function App() {
 
 
   return (
     <BrowserRouter>
+      <div className='flex justify-center'><Navbar /></div>
+
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path='/game' element={<Game />} />
         {/* <Route path="/team" element={<Team />} />
         <Route path="/events" element={<Events />} />
         <Route path="/projects">

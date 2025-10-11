@@ -2,7 +2,8 @@
 import type { Server as HttpServer } from 'http';
 import { Server as IOServer, Socket } from 'socket.io';
 
-const playerSocketMap: Record<string, Socket> = {};
+const playerSocketMap = new Map<string, string>();
+
 
 export const startSocketServer = (server: HttpServer) => {
     const io = new IOServer(server, {
@@ -14,18 +15,16 @@ export const startSocketServer = (server: HttpServer) => {
     io.on('connection', (socket: Socket) => {
         console.log(`User connected: ${socket.id}`);
 
+        const userId = socket.handshake.query.userId as string;;
 
-        socket.on('join', (playerId: string) => {
-            playerSocketMap[playerId] = socket;
-            console.log(`Player ${playerId} joined with socket ID ${socket.id}`);
-        });
+        if (userId) playerSocketMap.set(userId, socket.id)
+
 
         socket.on('disconnect', () => {
-            console.log(`User disconnected: ${socket.id}`);
-            // Remove from map
-            for (const [playerId, sock] of Object.entries(playerSocketMap)) {
-                if (sock.id === socket.id) {
-                    delete playerSocketMap[playerId];
+            for (const [playerId, sock] of playerSocketMap.entries()) {
+                if (sock === socket.id) {
+                    playerSocketMap.delete(playerId);
+                    console.log(`Removed player ${playerId} from socket map`);
                     break;
                 }
             }
@@ -33,6 +32,6 @@ export const startSocketServer = (server: HttpServer) => {
     });
 };
 
-export const findSocketId = (publicKey: string): Socket => {
-    return playerSocketMap[publicKey]
-}
+export const findSocketByUserId = (publicKey: string): string | undefined => {
+    return playerSocketMap.get(publicKey);
+};
