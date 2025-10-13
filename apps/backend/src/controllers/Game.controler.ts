@@ -24,7 +24,7 @@ const createGame = AsyncHandler(async (req, res) => {
         player2,
         player1Move,
         stake,
-        gameStatus: 'pending',
+        gameStatus: 'in-progress',
     });
 
     return res.status(201).json({ message: 'Game created successfully.', game: newGame });
@@ -90,39 +90,39 @@ const decideWiner = AsyncHandler(async (req, res) => {
 });
 
 const getMyGames = AsyncHandler(async (req, res) => {
-    const { player1 } = req.body;
+    const { player1 } = req.query;
 
-    if (!player1) {
-        return res.status(400).json({ error: 'Missing required fields.' });
+    if (!player1 || typeof player1 !== 'string') {
+        return res.status(400).json({ error: 'Missing or invalid player1 parameter.' });
     }
 
     if (!ethers.isAddress(player1)) {
         return res.status(400).json({ error: 'Invalid player1 address' });
     }
 
-    const games = await Game.find({ player1, gameStatus: 'pending' }).exec();
+    const games = await Game.find({ player1, winner: null }).exec();
 
     return res.status(200).json(games);
 });
 
 const getGamesByPlayer2 = AsyncHandler(async (req, res) => {
-    const { player } = req.body;
+    const { player } = req.query;
 
-    if (!player) {
-        return res.status(400).json({ error: 'Missing player address' });
+    if (!player || typeof player !== 'string') {
+        return res.status(400).json({ error: 'Missing or invalid player address' });
     }
 
     if (!ethers.isAddress(player)) {
         return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
-    const games = await Game.find({ player2: player }).exec();
+    const games = await Game.find({ player2: player, status: "pending" }).exec();
 
     return res.status(200).json(games);
 });
 
 const getFinishedGamesByPlayer = AsyncHandler(async (req, res) => {
-    const { player } = req.body;
+    const { player } = req.query;
 
     if (!player) {
         return res.status(400).json({ error: 'Missing player address' });
@@ -144,5 +144,32 @@ const getFinishedGamesByPlayer = AsyncHandler(async (req, res) => {
 });
 
 
+const getplayer2move = AsyncHandler(async (req, res) => {
+    const { contractId } = req.query;
 
-export { secondMove, createGame, decideWiner, getMyGames, getGamesByPlayer2, getFinishedGamesByPlayer };
+    if (!contractId) {
+        return res.status(400).json({ error: 'Contract address is required.' });
+    }
+
+    const game = await Game.findOne({ contractId });
+
+    if (!game) {
+        return res.status(404).json({ error: 'Game not found.' });
+    }
+
+    if (game.gameStatus === 'completed') {
+        return res.status(200).json({
+            message: 'Game is completed.',
+            player2Move: game.player2Move,
+        });
+    }
+
+    return res.status(200).json({
+        message: 'Player 2 move is not yet made.',
+        player2Move: game.player2Move ?? null,
+    });
+});
+
+
+
+export { secondMove, createGame, decideWiner, getMyGames, getGamesByPlayer2, getFinishedGamesByPlayer, getplayer2move };

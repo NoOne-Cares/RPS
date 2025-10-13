@@ -1,37 +1,49 @@
 import { useState } from "react";
+import CreateGame from "./CreateGame";
+import JoinGame from "./JoinGame";
+import GameLogs from "./GameLogs";
+
 
 
 const GameTabs = () => {
-    const [activeTab, setActiveTab] = useState<"create" | "join">("create");
+    const [activeTab, setActiveTab] = useState<"create" | "join" | "log">("create");
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-md space-y-6">
-            {/* Tab Buttons */}
-            <div className="flex justify-center space-x-6">
-                <button
-                    className={`px-4 py-2 font-semibold rounded ${activeTab === "create"
+        <div>
+            <div className="flex row max-w-4xl mx-auto bg-white   rounded-full shadow-md">
+                <div
+                    className={`rounded-tl-full rounded-bl-full basis-1/3 px-4 py-2 font-semibold rounded cursor-pointer ${activeTab === "create"
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white"
+                        : "bg-gray-200  text-gray-800"
                         }`}
                     onClick={() => setActiveTab("create")}
                 >
                     Create Game
-                </button>
-                <button
-                    className={`px-4 py-2 font-semibold rounded ${activeTab === "join"
+                </div>
+                <div
+                    className={`basis-1/3 px-4 py-2 font-semibold cursor-pointer ${activeTab === "join"
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white"
+                        : "bg-gray-200 text-gray-800"
                         }`}
                     onClick={() => setActiveTab("join")}
                 >
                     Join Game
-                </button>
+                </div>
+                <div
+                    className={`basis-1/3 px-4 py-2 rounded-tr-full rounded-br-full cursor-pointer font-semibold rounded ${activeTab === "log"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-800"
+                        }`}
+                    onClick={() => setActiveTab("log")}
+                >
+                    History
+                </div>
+
+            </div>
+            <div>
+                {activeTab === "create" ? <CreateGame /> : activeTab === "join" ? <JoinGame /> : <GameLogs />}
             </div>
 
-            {/* Tab Content */}
-            <div>
-                {/* {activeTab === "create" ? <CreateGame /> : <JoinGame />} */}
-            </div>
         </div>
     );
 };

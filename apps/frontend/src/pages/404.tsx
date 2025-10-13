@@ -1,8 +1,9 @@
+import NotFound from "../components/NotFound"
 
 
 const Page404 = () => {
     return (
-        <div>Page404</div>
+        <NotFound />
     )
 }
 

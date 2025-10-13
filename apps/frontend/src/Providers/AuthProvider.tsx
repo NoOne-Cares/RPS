@@ -2,8 +2,10 @@ import { createAuthenticationAdapter } from '@rainbow-me/rainbowkit';
 import { createSiweMessage } from 'viem/siwe';
 import { AuthAtom } from '../utils/store';
 import { getDefaultStore } from 'jotai';
+import { disconnectSocket } from '../utils/Socket';
 
 const store = getDefaultStore();
+
 
 const authenticationAdapter = createAuthenticationAdapter({
 
@@ -39,6 +41,7 @@ const authenticationAdapter = createAuthenticationAdapter({
         const res = await fetch('/api/auth/logout');
         if (res.ok) {
             store.set(AuthAtom, 'unauthenticated');
+            disconnectSocket()
         }
     },
 });

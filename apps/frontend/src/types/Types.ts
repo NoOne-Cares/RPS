@@ -6,28 +6,22 @@ export type Option = {
 
 //type to store the salt and move in local storage
 export type CreatedGame = {
-    contractAddress: string
+    contractAddress: `0x${string}`
     move: number
-    salt: string
-}
-
-//store the user session in perstant in in local storage
-export type User = {
-    publicKey: null | string
-    isSignedIn: boolean
-    signature: null | string
+    salt: number
 }
 
 // all the games the user has played or participated
 export type Game = {
-    contractAddress: string
+    contractAddress: `0x${string}` | undefined
     value: number
-    player1: string
-    player2: string
-    player1move: string
-    player2move: null | number
+    player1: `0x${string}` | undefined
+    player2: `0x${string}` | undefined
+    player1move: `0x${string}` | number
+    player2move?: null | number
     createdAt: number
-    winner: null | string
+    winner?: null | string
+    claimable?: boolean
 }
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';

@@ -1,27 +1,117 @@
 import { useState } from "react";
 import ImageOptions from "../utils/imageOptions";
-
+import type { Game } from "../types/Types";
+import { useAccount } from "wagmi";
+import { useDeployContract } from "../hook/useDeployContract";
+import { connectSocket } from '../utils/Socket'
+// import { useGameSocket } from "../hook/useSocket";
+import { ToastContainer, toast } from 'react-toastify';
+import { ethers } from 'ethers'
+import { hash } from "../utils/SaltGenerator";
+import { useSetAtom } from "jotai";
+import { GameCreatedByMe } from "../utils/store";
+import { createGame } from "../Helpers/APIHelper";
+import { type CreateGamePayload } from "../Helpers/APIHelper";
 const ImageSelector = () => {
+    const { address } = useAccount()
+    const { deployContractToChain } = useDeployContract();
+    const [key, setKey] = useState<`0x${string}` | undefined>(undefined)
     const [selected, setSelected] = useState<number | null>(null);
-    const [opponentKey, setOpponentKey] = useState("");
-    const [stake, setStake] = useState("");
+    const [stake, setStake] = useState<number>();
+    const setCreatedGame = useSetAtom(GameCreatedByMe)
 
     const handleSelect = (value: number) => {
-        setSelected(value);
+        setSelected(value)
     };
 
-    const handleSubmit = () => {
-        if (!selected || !opponentKey || !stake) {
-            alert("Please select an image, enter opponent key and stake.");
-            return;
+    const showToast = (mesg: string) => toast.error(mesg);
+    const showToastSuccess = (mesg: string) => toast.error(mesg);
+    // const handleKey = (key: string) => {
+    //     setCreatedGame(prev => ({ ...prev, player2: key as string }));
+    // }
+    // useGameSocket(address as `0x${string}`, {
+    //     reciveCreatedGame: (data) => {
+    //         console.log('Game created:', data);
+    //     },
+    //     reciveSecondMove: (data) => {
+    //         console.log('Second move received:', data);
+    //     },
+    //     contractClaimed: (data) => {
+    //         console.log('Contract claimed:', data);
+    //     },
+    // });
+
+    const HandleSubmit = async () => {
+        const currentstake = Number(stake)
+        const currentKey = key!
+        const currentMove = Number(selected)
+
+        if (currentMove! > 6 || currentMove! < 0 || !currentstake || currentstake < 0 || !ethers.isAddress(address!) || !ethers.isAddress(currentKey!)) {
+            showToast("Invalid Input")
+            return
         }
-        console.log("Selected:", selected, "Key:", opponentKey, "Stake:", stake);
+        const createdGame: Game = {
+            contractAddress: undefined,
+            value: currentstake,
+            player1: address!,
+            player2: key!,
+            player1move: currentMove,
+            createdAt: Date.now()
+        }
+
+
+        const response = await deployContractToChain(createdGame);
+
+        if (response) {
+            createdGame.contractAddress = response.contractAddress
+            const hashedPlayerMove = hash(createdGame.player1move as number, response.salt)
+            createdGame.player1move = hashedPlayerMove
+            // hasded the player player move and send it using socket
+            const updatedGame = {
+                ...createdGame,
+                player1move: hashedPlayerMove
+            }
+            handleSocket(updatedGame)
+
+            setCreatedGame((prev) => {
+                const exists = prev.some(game => game.contractAddress === createdGame.contractAddress);
+                return exists ? prev : [...prev, createdGame];
+            });
+
+            try {
+                const gamePayload: CreateGamePayload = {
+                    contractId: response.contractAddress,
+                    player1: address!,
+                    player2: key!,
+                    player1Move: hashedPlayerMove, // rock = 1, paper = 2, etc.
+                    stake: currentstake,
+                };
+                await createGame(gamePayload)
+                showToastSuccess("contract created successsfully")
+            } catch (error) {
+                console.log(error)
+                showToast("somthing went wrong")
+            }
+
+
+        }
+
     };
+
+    const handleSocket = (game: Game) => {
+        let socket
+        if (address) socket = connectSocket(address)
+        if (socket) {
+            socket.emit("createContract", game)
+        }
+
+    }
+
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8">
+            <ToastContainer />
             <h2 className="text-2xl font-bold text-center text-gray-800">Select Your Move</h2>
-
             <div className="flex flex-wrap justify-center gap-6">
                 {ImageOptions.map((option) => (
                     <div
@@ -48,27 +138,42 @@ const ImageSelector = () => {
                 <input
                     type="text"
                     placeholder="Opponent Public Key"
-                    value={opponentKey}
-                    onChange={(e) => setOpponentKey(e.target.value)}
+                    value={key}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.startsWith('0x')) {
+                            setKey(value as `0x${string}`);
+                        } else {
+                            setKey(undefined);
+                        }
+                    }}
                     className="px-4 py-2 rounded border border-gray-300  bg-gray-50  text-gray-800  w-full sm:w-96"
                 />
                 <input
                     type="number"
                     min={0}
                     placeholder="Stake (ETH)"
-                    value={stake}
-                    onChange={(e) => setStake(e.target.value)}
-                    className="px-4 py-2 rounded border border-gray-300  bg-gray-50  text-gray-800 w-full sm:w-40"
+                    value={stake ?? ""} // fallback to empty string if null/undefined
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "") {
+                            setStake(undefined); // allow empty input
+                        } else {
+                            setStake(Number(value));
+                        }
+                    }}
+                    className="px-4 py-2 rounded border border-gray-300 bg-gray-50 text-gray-800 w-full sm:w-40"
                 />
+
             </div>
 
             {/* Submit Button */}
             <div className="text-center">
                 <button
-                    onClick={handleSubmit}
-                    className="px-5 py-2  text-neutral-700 font-semibold rounded-3xl border border-neutral-600 transition"
+                    // onClick={handleSocket}
+                    onClick={HandleSubmit}
+                    className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 font-semibold hover:scale-105 rounded-xl shadow transition duration-300 cursor-pointer"
                 >
-                    <div className="absolute inset-x-0 -bottom-px h-3px w-full bg-gradient-to-r from-transparent via-sky-400 to-transparent"></div>
                     Submit
                 </button>
             </div>
