@@ -43,7 +43,7 @@ RSP is a decentralized Rock-Paper-Scissors-Lizard-Spock game built on the Ethere
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourusername/rsp.git
+git clone https://github.com/NoOne-Cares/RPS.git
 cd rsp
 ```
 
