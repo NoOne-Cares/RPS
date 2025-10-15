@@ -1,37 +1,30 @@
 import JoinGameCard from "./JoinGameCard"
 import type { Game } from "../types/Types";
-import { useGameSocket } from "../hook/useSocket";
 import { useAccount } from "wagmi";
 import { useAtom } from "jotai";
 import { GameCretedForMe } from "../utils/store";
 import { getSocket } from "../utils/Socket";
 import { getGamesByPlayer2, secondMove } from "../Helpers/APIHelper";
 import { ToastContainer, toast } from 'react-toastify';
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePlay } from "../hook/usePlay";
 
 const JoinGame = () => {
     const { address } = useAccount()
     const [gamesForMe, setGamesForMe] = useAtom(GameCretedForMe)
-    const [choice, setChoice] = useState<number>(0)
-    const [stake, setStake] = useState<number>(0)
-    const [contract, setContract] = useState<`0x${string}`>()
     const notifySuccess = (msg: string) => toast.success(msg)
     const notifyError = (msg: string) => toast.error(msg)
-    const { write: play } = usePlay(contract ? contract : "0xjkaasjdkfajfdkf", choice, stake);
+    const { write: play } = usePlay();
     const handleGameSubmit = async (game: Game, selected: number) => {
 
         console.log("Submitted move:", selected, "for game:", game.contractAddress);
         if (selected != 0 && selected < 6) {
-            setChoice(selected)
-            setStake(game.value)
-            setContract(game.contractAddress)
             const socket = getSocket();
             game.player2move = selected
             socket?.emit("secondmove", game)
 
             try {
-                const tx = await play()
+                const tx = await play(game.contractAddress!, selected, game.value)
                 console.log(tx)
                 await secondMove(game.contractAddress!, selected)
                 setGamesForMe(prevGames =>
@@ -52,7 +45,10 @@ const JoinGame = () => {
         const fectGmae = async () => {
             try {
                 const data = await getGamesByPlayer2(address!)
+                console.log("resquesting player 2 games")
+                console.log(data)
                 setGamesForMe(data)
+                console.log(address!)
             } catch (error) {
                 console.log(error)
             }
@@ -61,14 +57,7 @@ const JoinGame = () => {
     }, [address, setGamesForMe])
 
 
-    useGameSocket(address as `0x${string}`, {
-        reciveCreatedGame: (data) => {
-            setGamesForMe((prev) => {
-                const exists = prev.some(game => game.contractAddress === data.contractAddress);
-                return exists ? prev : [...prev, data];
-            });
-        },
-    });
+
 
 
     return (

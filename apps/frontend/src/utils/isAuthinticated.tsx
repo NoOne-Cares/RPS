@@ -4,7 +4,6 @@ import { AuthAtom } from "./store";
 
 export function useAuthenticationStatus() {
     const setAuthStatus = useSetAtom(AuthAtom);
-
     useEffect(() => {
         const check = async () => {
             try {
@@ -16,6 +15,7 @@ export function useAuthenticationStatus() {
                 }
             } catch {
                 setAuthStatus('unauthenticated');
+
             }
         };
         check();

@@ -8,7 +8,7 @@ export type Option = {
 export type CreatedGame = {
     contractAddress: `0x${string}`
     move: number
-    salt: number
+    salt: string
 }
 
 // all the games the user has played or participated

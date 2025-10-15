@@ -1,21 +1,14 @@
-const findWinner = (player1move: number, player2move: number): number => {
-    if (player1move === player2move) return 0;
+const findWinner = (player1Move: number, player2Move: number): number => {
+    if (player1Move === player2Move) return 0;
+    if (player1Move === 0) return 2;
 
-    const winsAgainst: Record<number, number[]> = {
-        1: [3, 4],
-        2: [1, 5],
-        3: [2, 4],
-        4: [5, 2],
-        5: [3, 1],
-    };
+    const sameParity = player1Move % 2 === player2Move % 2;
 
-    if (winsAgainst[player1move]?.includes(player2move)) {
-        return 1;
-    } else if (winsAgainst[player2move]?.includes(player1move)) {
-        return 2;
+    if (sameParity) {
+        return player1Move < player2Move ? 1 : 2;
     } else {
-        return 0;
+        return player1Move > player2Move ? 1 : 2;
     }
-}
+};
 
-export default findWinner
+export default findWinner;

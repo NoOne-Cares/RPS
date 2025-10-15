@@ -3,20 +3,19 @@ import {
     useWalletClient,
     usePublicClient
 } from 'wagmi'
-import {
-    parseEther,
-} from 'viem'
+
+import { keccak256, solidityPacked, parseEther } from "ethers";
 import { abi, bytecode } from '../Helpers/contractHelper'
 import type { Game } from '../types/Types'
-import { generateSalt, hash } from '../utils/SaltGenerator'
-// import { useSetAtom } from 'jotai'
-// import { CreatedGamesWithSalt } from '../utils/store'
+import { generateSalt } from '../utils/SaltGenerator'
+import { useSetAtom } from 'jotai'
+import { CreatedGamesWithSalt } from '../utils/store'
 
 export function useDeployContract() {
     const { address } = useAccount()
     const { data: walletClient } = useWalletClient()
     const publicClient = usePublicClient()
-    // const setCreatedGame = useSetAtom(CreatedGamesWithSalt)
+    const setCreatedGame = useSetAtom(CreatedGamesWithSalt)
 
     async function deployContractToChain(game: Game): Promise<{ contractAddress: `0x${string}`, salt: bigint } | undefined> {
         if (!walletClient || !address) {
@@ -26,10 +25,11 @@ export function useDeployContract() {
 
         const salt = generateSalt()
         const c1 = game.player1move as number
-        const c1Hash = hash(c1, BigInt(salt))
+        const encoded = solidityPacked(["uint8", "uint256"], [c1, salt]);
+        const c1Hash = keccak256(encoded);
         const j2 = game.player2
         const value = parseEther(game.value.toString())
-
+        console.log(c1 + "       " + salt + "         " + c1Hash)
         try {
             const hash = await walletClient.deployContract({
                 abi,
@@ -47,16 +47,16 @@ export function useDeployContract() {
             const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
             console.log('Contract deployed at:', receipt.contractAddress)
-
-            // setCreatedGame((prev) => [
-            //     ...prev,
-            //     {
-            //         contractAddress: receipt.contractAddress!,
-            //         move: c1,
-            //         salt: salt,
-            //     }
-            // ])
-
+            const saltString = salt.toString()
+            setCreatedGame((prev) => [
+                ...prev,
+                {
+                    contractAddress: receipt.contractAddress!,
+                    move: c1,
+                    salt: saltString,
+                }
+            ])
+            console.log("store updated")
             return {
                 contractAddress: receipt.contractAddress!,
                 salt

@@ -69,7 +69,7 @@ const decideWiner = AsyncHandler(async (req, res) => {
     const game = await Game.findOne({ contractId });
 
     if (!game) {
-        return res.status(404).json({ error: 'Game not found.' });
+        return res.status(406).json({ error: 'Game not found.' });
     }
 
 
@@ -107,7 +107,7 @@ const getMyGames = AsyncHandler(async (req, res) => {
 
 const getGamesByPlayer2 = AsyncHandler(async (req, res) => {
     const { player } = req.query;
-
+    console.log(player)
     if (!player || typeof player !== 'string') {
         return res.status(400).json({ error: 'Missing or invalid player address' });
     }
@@ -116,7 +116,7 @@ const getGamesByPlayer2 = AsyncHandler(async (req, res) => {
         return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
-    const games = await Game.find({ player2: player, status: "pending" }).exec();
+    const games = await Game.find({ player2: player, gameStatus: 'in-progress' }).exec();
 
     return res.status(200).json(games);
 });
@@ -145,16 +145,16 @@ const getFinishedGamesByPlayer = AsyncHandler(async (req, res) => {
 
 
 const getplayer2move = AsyncHandler(async (req, res) => {
-    const { contractId } = req.query;
+    const { contract } = req.query;
 
-    if (!contractId) {
+    if (!contract) {
         return res.status(400).json({ error: 'Contract address is required.' });
     }
 
-    const game = await Game.findOne({ contractId });
+    const game = await Game.findOne({ contractId: contract });
 
     if (!game) {
-        return res.status(404).json({ error: 'Game not found.' });
+        return res.status(406).json({ error: 'Game not found.' });
     }
 
     if (game.gameStatus === 'completed') {
@@ -169,7 +169,25 @@ const getplayer2move = AsyncHandler(async (req, res) => {
         player2Move: game.player2Move ?? null,
     });
 });
+const deleteGame = AsyncHandler(async (req, res) => {
+    const { contractId } = req.body;
+
+    if (!contractId || typeof contractId !== 'string') {
+        return res.status(400).json({ error: 'Missing or invalid contractId.' });
+    }
+
+    const game = await Game.findOne({ contractId });
+
+    if (!game) {
+        return res.status(404).json({ error: 'Game not found.' });
+    }
+
+    await game.deleteOne();
+
+    return res.status(200).json({ message: 'Game deleted successfully.' });
+});
 
 
 
-export { secondMove, createGame, decideWiner, getMyGames, getGamesByPlayer2, getFinishedGamesByPlayer, getplayer2move };
+
+export { secondMove, createGame, decideWiner, getMyGames, getGamesByPlayer2, getFinishedGamesByPlayer, getplayer2move, deleteGame };

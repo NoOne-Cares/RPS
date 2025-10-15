@@ -47,7 +47,7 @@ export const getMyGames = async (player1: `0x${string}`) => {
 
 ///decide winner
 export const decideWinner = async (contractId: string, player1Move: number) => {
-    const res = await fetch('/api/games/decide-winner', {
+    const res = await fetch('http://localhost:8000/api/games/revel', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -61,11 +61,12 @@ export const decideWinner = async (contractId: string, player1Move: number) => {
         throw new Error(error?.error || 'Failed to decide winner');
     }
 
-    return res.json();
+    const data = await res.json();
+    return mapBackendGameToFrontend(data.game);
 };
 // //get games by plyer 2
 export const getGamesByPlayer2 = async (player2: `0x${string}`) => {
-    // const params = new URLSearchParams({ player: player2 });
+
 
     const res = await fetch(`/api/games/gameforme?player=${encodeURIComponent(player2)}`, {
         method: 'GET',
@@ -83,15 +84,15 @@ export const getGamesByPlayer2 = async (player2: `0x${string}`) => {
     const data = await res.json();
     return data.map(mapBackendGameToFrontend);
 }
-//gistory game
+
+
 export const getFinishedGames = async (player: `0x${string}`) => {
-    const res = await fetch('/api/games/finished', {
-        method: 'POST',
+    const res = await fetch(`api/games/getallgames?player=${encodeURIComponent(player)}`, {
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ player }),
     });
 
     if (!res.ok) {
@@ -102,25 +103,6 @@ export const getFinishedGames = async (player: `0x${string}`) => {
     const data = await res.json();
     return data.map(mapBackendGameToFrontend)
 };
-
-// export const getGamesByPlayertwo = async (player2: `0x${string}`) => {
-//     const params = new URLSearchParams({ player: player2 });
-
-//     const res = await fetch(`/api/games/player2?${params.toString()}`, {
-//         method: 'GET',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         credentials: 'include',
-//     });
-
-//     if (!res.ok) {
-//         const error = await res.json();
-//         throw new Error(error?.error || 'Failed to get games');
-//     }
-
-//     return res.json();
-// };
 
 
 export const secondMove = async (contractId: `0x${string}`, player2Move: number) => {
@@ -142,9 +124,9 @@ export const secondMove = async (contractId: `0x${string}`, player2Move: number)
 };
 
 export const getPlayer2Move = async (contractId: `0x${string}`) => {
-    const params = new URLSearchParams({ contractId });
+    // const res = await fetch(`/api/games/gameforme?player=${encodeURIComponent(player2)}`,
 
-    const res = await fetch(`http://localhost:8000/api/games/getplayer2move?${params.toString()}`, {
+    const res = await fetch(`/api/games/getsecondmove?contract=${encodeURIComponent(contractId)}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -155,6 +137,24 @@ export const getPlayer2Move = async (contractId: `0x${string}`) => {
     if (!res.ok) {
         const error = await res.json();
         throw new Error(error?.error || 'Failed to fetch Player 2 move');
+    }
+
+    return res.json();
+};
+
+export const deleteGame = async (contractId: `0x${string}`) => {
+    const res = await fetch('/api/games/deltegame', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ contractId }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error?.error || "Fail to delte Game");
     }
 
     return res.json();

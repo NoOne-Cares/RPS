@@ -28,12 +28,14 @@ const anvil = {
 
 const config = getDefaultConfig({
     appName: 'My RainbowKit App',
-    projectId: 'YOUR_PROJECT_ID', // Replace with your actual WalletConnect project ID
+    projectId: process.env.WALLET_CONNNECT_PROJECT_ID ?? "",
     chains: [anvil],
     ssr: false,
 });
 
 export default config;
+
+
 
 
 

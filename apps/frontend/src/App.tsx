@@ -42,6 +42,9 @@ function App() {
         return exists ? prev : [...prev, data];
       });
     },
+    contractClaimed: (data) => {
+      console.log('Contract claimed:', data);
+    },
   });
 
 

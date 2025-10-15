@@ -1,39 +1,28 @@
 // src/hooks/useJ2Timeout.ts
-import { useSimulateContract, useWriteContract } from 'wagmi';
+import { useWriteContract, usePublicClient, useAccount } from 'wagmi';
 import { getGameContractConfig } from '../Helpers/gameContract';
 
-export function useJ2Timeout(contractAddress: `0x${string}`) {
-    const { data: simulation } = useSimulateContract({
-        ...getGameContractConfig(contractAddress),
-        functionName: 'j2Timeout',
-    });
-
+export function useJ2Timeout() {
+    const { address } = useAccount()
+    const publicClient = usePublicClient();
     const { writeContractAsync, isPending } = useWriteContract();
 
-    const write = async () => {
-        if (!simulation) return;
-        return writeContractAsync(simulation.request);
-    };
+    const execute = async (contractAddress: `0x${string}`) => {
+        try {
+            const contractConfig = getGameContractConfig(contractAddress);
 
-    const execute = async () => {
-        await write();
+            const simulation = await publicClient!.simulateContract({
+                ...contractConfig,
+                functionName: 'j2Timeout',
+                account: address,
+            });
+
+            return await writeContractAsync(simulation.request);
+        } catch (error) {
+            console.error("Simulation or write failed:", error);
+            throw error;
+        }
     };
 
     return { execute, isPending };
 }
-
-
-
-
-
-// import { useJ2Timeout } from '../hooks/useJ2Timeout';
-
-// const J2TimeoutComponent = ({ contractAddress }: { contractAddress: `0x${string}` }) => {
-//   const { execute: triggerJ2Timeout, isPending } = useJ2Timeout(contractAddress);
-
-//   return (
-//     <button onClick={triggerJ2Timeout} disabled={isPending}>
-//       Trigger J2 Timeout
-//     </button>
-//   );
-// };

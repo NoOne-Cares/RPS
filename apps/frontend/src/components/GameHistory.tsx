@@ -4,22 +4,21 @@ import type { Game } from "../types/Types";
 
 type Props = {
     games: Game[];
-    currentUser: string;
+    currentUser: `0x${string}`;
 };
 
 const GameHistory: React.FC<Props> = ({ games, currentUser }) => {
     const getStatusStyle = (game: Game) => {
         if (game.winner === "draw") return "text-blue-600 bg-blue-100";
         if (game.winner === currentUser) return "text-green-600 bg-green-100";
-        if (game.winner === game.player2) return "text-red-600 bg-red-100";
-        return "text-gray-600 bg-gray-100";
+        return "text-red-600 bg-red-100";
+
     };
 
     const getStatusText = (game: Game) => {
         if (game.winner === "draw") return "Draw";
-        if (game.winner === currentUser) return "You Win 🎉";
-        if (game.winner === game.player2) return "Opponent Wins 😓";
-        return "Pending";
+        if (game.winner === currentUser) return "You Win";
+        return "Opponent Wins";
     };
 
     const getMoveImage = (move: string | number | null | undefined) => {

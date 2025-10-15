@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEDN_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"]
 }))

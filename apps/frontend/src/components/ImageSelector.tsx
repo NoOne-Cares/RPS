@@ -25,7 +25,7 @@ const ImageSelector = () => {
     };
 
     const showToast = (mesg: string) => toast.error(mesg);
-    const showToastSuccess = (mesg: string) => toast.error(mesg);
+    const showToastSuccess = (mesg: string) => toast.success(mesg);
     // const handleKey = (key: string) => {
     //     setCreatedGame(prev => ({ ...prev, player2: key as string }));
     // }
@@ -64,7 +64,7 @@ const ImageSelector = () => {
 
         if (response) {
             createdGame.contractAddress = response.contractAddress
-            const hashedPlayerMove = hash(createdGame.player1move as number, response.salt)
+            const hashedPlayerMove = hash(createdGame.player1move as number, BigInt(response.salt))
             createdGame.player1move = hashedPlayerMove
             // hasded the player player move and send it using socket
             const updatedGame = {
